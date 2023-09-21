@@ -1,5 +1,6 @@
 from aiogram import Bot, Dispatcher, types
-from aiogram.types import ReplyKeyboardMarkup, InlineKeyboardMarkup, InlineKeyboardButton
+from app import keyboards as kb
+from app import database as db
 from aiogram.utils import executor
 from dotenv import load_dotenv
 import os
@@ -9,31 +10,18 @@ bot = Bot(os.getenv('TOKEN'))
 dp = Dispatcher(bot=bot)
 
 
-
-main = ReplyKeyboardMarkup(resize_keyboard=True)
-main.add('Каталог').add('Корзина').add('Контакты')
-
-main_admin = ReplyKeyboardMarkup(resize_keyboard=True)
-main_admin.add('Каталог').add('Корзина').add('Контакты').add('Админ-панель')
-
-admin_panel = ReplyKeyboardMarkup(resize_keyboard=True)
-admin_panel.add('Добавить товар').add('Удалить товар').add('Сделать рассылку')
-
-catalog_list = InlineKeyboardMarkup(row_width=2)
-catalog_list.add(InlineKeyboardButton(text='Футболки', url='https://t.me/Urii_Logachev'), 
-                 InlineKeyboardButton(text='Шорты', url='https://t.me/Urii_Logachev'),
-                 InlineKeyboardButton(text='Кроссовки', url='https://t.me/Urii_Logachev'))
-
-
+async def on_startup(_):
+    await db.db_start()
+    print('Бот успешно запущен')
 
 @dp.message_handler(commands=['start'])
 async def cmd_start(message: types.Message):
     await message.answer_sticker('CAACAgIAAxkBAAMNZQwXWT6dILmr7PmsUtDZF2mL93EAAgUAA8A2TxP5al-agmtNdTAE')
     await message.answer(f'{message.from_user.first_name}, Добро пожаловать в магазин кроссовок!',
-                         reply_markup=main)
+                         reply_markup=kb.main)
     if message.from_user.id == int(os.getenv('ADMIN_ID')):
         await message.answer(f'Вы авторизировались как администратор',
-                             reply_markup=main_admin)
+                             reply_markup=kb.main_admin)
 
 
 @dp.message_handler(commands=['id'])
@@ -43,7 +31,7 @@ async def cmd_id(message: types.Message):
 
 @dp.message_handler(text='Каталог')
 async def catalog(message: types.Message):
-    await message.answer(f'Каталог пуст!', reply_markup=catalog_list)
+    await message.answer(f'Каталог пуст!', reply_markup=kb.catalog_list)
 
 
 @dp.message_handler(text='Корзина')
@@ -59,7 +47,7 @@ async def contacts(message: types.Message):
 @dp.message_handler(text='Админ-панель')
 async def open_admin_panel(message: types.Message):
     if message.from_user.id == int(os.getenv('ADMIN_ID')):
-        await message.answer(f'Вы вошли в админ-панель', reply_markup=admin_panel)
+        await message.answer(f'Вы вошли в админ-панель', reply_markup=kb.admin_panel)
     else:
         await message.reply('Я тебя не понимаю.')
 
@@ -69,7 +57,19 @@ async def answer(message: types.Message):
     await message.reply('Я тебя не понимаю.')
 
 
+@dp.callback_query_handler()
+async def callback_query_keyboard(callback_query: types.CallbackQuery):
+    if callback_query.data == 't-shirt':
+        await bot.send_message(chat_id=callback_query.from_user.id, 
+                               text='Вы выбрали футболки')
+    elif callback_query.data == 'shorts':
+        await bot.send_message(chat_id=callback_query.from_user.id, 
+                               text='Вы выбрали шорты')
+    elif callback_query.data == 'sneakers':    
+        await bot.send_message(chat_id=callback_query.from_user.id, 
+                               text='Вы выбрали кроссовки')
+
 
 if __name__ == '__main__':
-    executor.start_polling(dp)
+    executor.start_polling(dp, on_startup=on_startup)
 
