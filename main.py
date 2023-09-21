@@ -1,5 +1,5 @@
 from aiogram import Bot, Dispatcher, types
-from aiogram.types import ReplyKeyboardMarkup
+from aiogram.types import ReplyKeyboardMarkup, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils import executor
 from dotenv import load_dotenv
 import os
@@ -7,6 +7,8 @@ import os
 load_dotenv()
 bot = Bot(os.getenv('TOKEN'))
 dp = Dispatcher(bot=bot)
+
+
 
 main = ReplyKeyboardMarkup(resize_keyboard=True)
 main.add('Каталог').add('Корзина').add('Контакты')
@@ -16,6 +18,11 @@ main_admin.add('Каталог').add('Корзина').add('Контакты').a
 
 admin_panel = ReplyKeyboardMarkup(resize_keyboard=True)
 admin_panel.add('Добавить товар').add('Удалить товар').add('Сделать рассылку')
+
+catalog_list = InlineKeyboardMarkup(row_width=2)
+catalog_list.add(InlineKeyboardButton(text='Футболки', url='https://t.me/Urii_Logachev'), 
+                 InlineKeyboardButton(text='Шорты', url='https://t.me/Urii_Logachev'),
+                 InlineKeyboardButton(text='Кроссовки', url='https://t.me/Urii_Logachev'))
 
 
 
@@ -36,7 +43,7 @@ async def cmd_id(message: types.Message):
 
 @dp.message_handler(text='Каталог')
 async def catalog(message: types.Message):
-    await message.answer(f'Каталог пуст!')
+    await message.answer(f'Каталог пуст!', reply_markup=catalog_list)
 
 
 @dp.message_handler(text='Корзина')
