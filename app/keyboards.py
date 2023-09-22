@@ -20,3 +20,6 @@ catalog_list.add(InlineKeyboardButton(text='Футболки',
                  InlineKeyboardButton(text='Кроссовки', 
                                       callback_data='sneakers'))
 
+
+cancel = ReplyKeyboardMarkup(resize_keyboard=True)
+cancel.add('Отмена')
